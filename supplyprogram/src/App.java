@@ -156,25 +156,29 @@ public class App {
     }
     
     private static String extractFromResultsArray(String json, String variableName) {
-        // Find each variable object - they're separated by commas and enclosed in {}
-        // Split by "Variable":" to find all variables
-        String[] variableSections = json.split("\"VariableId\"");
-        
-        for(String section : variableSections) {
-            if(section.contains("\"Variable\":\"" + variableName + "\"")) {
-                // Found the right variable, now extract its Value
-                int valueStart = section.indexOf("\"Value\":\"");
-                if(valueStart == -1) continue;
-                
-                valueStart += 9; // length of "Value":"
-                int valueEnd = section.indexOf("\"", valueStart);
-                
-                if(valueEnd != -1) {
-                    return section.substring(valueStart, valueEnd);
+    // Isolate the individual result objects to prevent pointer drifting
+    String[] objects = json.split("\\}\\,\\{"); 
+    
+    for (String obj : objects) {
+        // Double-check this specific block belongs to our target variable
+        if (obj.contains("\"Variable\":\"" + variableName + "\"")) {
+            
+            // Safe extraction inside the isolated block
+            int valueIdx = obj.indexOf("\"Value\":\"");
+            if (valueIdx == -1) return ""; // Explicitly return empty if Value isn't here
+            
+            int start = valueIdx + 9;
+            int end = obj.indexOf("\"", start);
+            if (end != -1) {
+                String foundValue = obj.substring(start, end).trim();
+                // Ignore literal null strings or placeholders from the API
+                if (foundValue.equalsIgnoreCase("null") || foundValue.isEmpty()) {
+                    return "";
                 }
+                return foundValue;
             }
         }
-        
-        return "";
+    }
+    return "";
     }
 }
