@@ -44,6 +44,7 @@ public class App {
             // First, decode the VIN to get year, make, model
             String decodeUrl = "https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVin/" + vin + "?format=json";
             String vehicleInfo = makeAPICall(decodeUrl);
+            System.out.println(vehicleInfo);
             
             // Debug: print all variables to see what's available
             printAvailableVariables(vehicleInfo);
@@ -108,18 +109,36 @@ public class App {
     private static void printAvailableVariables(String json) {
         System.out.println("\n=== Available Variables ===");
         int index = 0;
-        while((index = json.indexOf("\"Variable\":\"", index)) != -1) {
-            int start = index + 12;
-            int end = json.indexOf("\"", start);
-            String variable = json.substring(start, end);
-            
-            int valueIdx = json.indexOf("\"Value\":\"", end);
-            int valueStart = valueIdx + 9;
-            int valueEnd = json.indexOf("\"", valueStart);
-            String value = json.substring(valueStart, valueEnd);
-            
-            System.out.println(variable + " = " + value);
-            index = end + 1;
+        while ((index = json.indexOf("\"Variable\":\"", index)) != -1) {
+            int varStart = index + 12;
+            int varEnd = json.indexOf("\"", varStart);
+            if (varEnd == -1) break;
+            String variable = json.substring(varStart, varEnd);
+
+            // Search BACKWARDS for Value since it appears before Variable in each object
+            int valueIdx = json.lastIndexOf("\"Value\":", index);
+            if (valueIdx == -1) {
+                index = varEnd + 1;
+                continue;
+            }
+
+            int afterColon = valueIdx + 8;
+            String value;
+            if (json.startsWith("null", afterColon)) {
+                value = "";
+            } else if (json.charAt(afterColon) == '"') {
+                int valueStart = afterColon + 1;
+                int valueEnd = json.indexOf("\"", valueStart);
+                if (valueEnd == -1) break;
+                value = json.substring(valueStart, valueEnd);
+            } else {
+                value = "";
+            }
+
+            if (!value.isEmpty()) {
+                System.out.println(variable + " = " + value);
+            }
+            index = varEnd + 1;
         }
         System.out.println("============================\n");
     }
