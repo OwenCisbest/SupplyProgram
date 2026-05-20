@@ -22,7 +22,6 @@ public class Car {
         } else {
             vinList.add(vin);
             System.out.println("Added VIN: " + vin);
-            System.out.println("All VINs: " + vinList);
         }
     }
 

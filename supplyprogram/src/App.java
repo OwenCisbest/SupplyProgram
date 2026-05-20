@@ -26,7 +26,7 @@ public class App {
 
             printAvailableVariables(json);
 
-            Car car = buildCar(json);
+            Car car = buildCar(json, vin);
             if (cars.containsKey(car.name)) {
                 cars.get(car.name).addVin(car.getVins().get(0));
             }
@@ -73,9 +73,9 @@ public class App {
         System.out.println("============================\n");
     }
 
-    private static Car buildCar(String json) {
+    private static Car buildCar(String json, String vin) {
         int index = 0;
-        String make = "", model = "", vin = "";
+        String make = "", model = "";
         int year = 0;
 
         while ((index = json.indexOf("\"Variable\":\"", index)) != -1) {
